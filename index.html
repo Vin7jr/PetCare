@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PetCare Manager</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g:#1A6B45; --g2:#28A46A; --gl:#E8F5EE; --gll:#F2FAF6;
+  --am:#D98A00; --aml:#FFF4DC;
+  --rd:#C93B3B; --rdl:#FDEAEA;
+  --bl:#2558C4; --bll:#EBF1FC;
+  --pu:#6B3FA0; --pul:#F3EDFB;
+  --bg:#EEF0EC; --sur:#FFFFFF;
+  --bdr:#DDE1D8; --tx:#192318; --mu:#657569; --hi:#A3B3A7;
+  --sb:#112118; --r:12px; --rs:8px; --sh:0 2px 14px rgba(0,0,0,.07);
+  --sb-w:232px; --bar-h:60px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;overscroll-behavior:none}
+
+/* ── LOGIN SCREEN ── */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100dvh;background:linear-gradient(135deg,#0d2218 0%,#1A6B45 60%,#28A46A 100%);padding:16px}
+.login-box{background:var(--sur);border-radius:var(--r);padding:36px 32px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo h1{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--g)}
+.login-logo p{font-size:12.5px;color:var(--mu);margin-top:4px}
+.login-title{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;margin-bottom:20px}
+.login-roles{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.role-btn{display:flex;align-items:center;gap:12px;padding:13px 16px;border:2px solid var(--bdr);border-radius:var(--rs);cursor:pointer;transition:all .15s;background:var(--sur)}
+.role-btn:hover{border-color:var(--g);background:var(--gll)}
+.role-btn.selected{border-color:var(--g);background:var(--gl)}
+.role-ico{font-size:22px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0}
+.role-rec .role-ico{background:#EBF1FC}.role-vet .role-ico{background:var(--pul)}.role-ger .role-ico{background:var(--aml)}
+.role-info b{display:block;font-size:13.5px;font-weight:700}
+.role-info span{font-size:11.5px;color:var(--mu)}
+#loginErr{display:none}
+
+/* ── SHELL ── */
+.shell{display:flex;height:100dvh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sb-w);background:var(--sb);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;z-index:300;transition:transform .25s ease}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo h1{font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;color:#fff;letter-spacing:-.3px}
+.sb-logo p{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
+.sb-user{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:9px}
+.sb-user-ava{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.sb-user-info b{display:block;font-size:12.5px;color:#fff;font-weight:700}
+.sb-user-info span{font-size:10.5px;color:rgba(255,255,255,.4)}
+.sb-sec{padding:14px 18px 3px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.28);font-weight:700}
+.sb-item{display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13.5px;font-weight:600;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.sb-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.sb-item.active{background:rgba(255,255,255,.11);color:#fff;border-left-color:#5DEBA0}
+.sb-item .ico{font-size:16px;min-width:20px;text-align:center}
+.sb-bdg{background:var(--rd);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:10px;margin-left:auto}
+.sb-logout{margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-logout button{width:100%;padding:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--rs);color:rgba(255,255,255,.6);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.sb-logout button:hover{background:rgba(255,255,255,.12);color:#fff}
+
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:290}
+.sb-overlay.on{display:block}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;gap:12px}
+.tb-left{display:flex;align-items:center;gap:10px;min-width:0}
+.tb-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ham-btn{display:none;background:none;border:none;cursor:pointer;font-size:22px;line-height:1;padding:4px;color:var(--tx);flex-shrink:0}
+#tbTitle{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alrt-pill{display:flex;align-items:center;gap:5px;background:var(--rdl);color:var(--rd);border:1px solid #f5bbbb;padding:5px 10px;border-radius:20px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.alrt-pill .ll{display:inline}.alrt-pill .ls{display:none}
+.user-chip{display:flex;align-items:center;gap:7px;padding:4px 10px;background:var(--bg);border-radius:20px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.tb-ava{width:28px;height:28px;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.page{flex:1;overflow-y:auto;padding:22px 20px 80px;-webkit-overflow-scrolling:touch}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bar-h);background:var(--sur);border-top:1px solid var(--bdr);z-index:200;align-items:stretch;justify-content:space-around}
+.bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:3px;cursor:pointer;color:var(--mu);font-size:10px;font-weight:700;padding:4px 2px;transition:color .15s;position:relative}
+.bn-item .ico{font-size:20px;line-height:1}
+.bn-item.active{color:var(--g)}
+.bn-item.active::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2.5px;background:var(--g);border-radius:0 0 3px 3px}
+.bn-bdg{position:absolute;top:6px;right:calc(50% - 18px);background:var(--rd);color:#fff;font-size:9px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* ── SCREENS ── */
+.screen{display:none}.screen.on{display:block}
+
+/* ── PAGE HEADER ── */
+.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-hd h2{font-family:'Nunito',sans-serif;font-size:21px;font-weight:900;letter-spacing:-.4px}
+.page-hd p{font-size:12.5px;color:var(--mu);margin-top:2px}
+.role-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;margin-top:4px}
+.rt-rec{background:var(--bll);color:var(--bl)}
+.rt-vet{background:var(--pul);color:var(--pu)}
+.rt-ger{background:var(--aml);color:#7a5000}
+.rt-all{background:var(--gl);color:var(--g)}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)}
+.stat-lbl{font-size:11.5px;color:var(--mu);font-weight:600;margin-bottom:5px}
+.stat-val{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;line-height:1}
+.stat-sub{font-size:11px;color:var(--hi);margin-top:4px}
+.stat.green .stat-val{color:var(--g)}.stat.amber .stat-val{color:var(--am)}.stat.red .stat-val{color:var(--rd)}
+
+/* ── CARD ── */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.card-sm{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rs);padding:13px 15px}
+.card-title{font-size:11px;text-transform:uppercase;letter-spacing:.9px;font-weight:700;color:var(--mu);margin-bottom:13px}
+
+/* ── GRIDS ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700}
+.bg{background:var(--gl);color:var(--g)}.ba{background:var(--aml);color:#7a5000}
+.br{background:var(--rdl);color:var(--rd)}.bb{background:var(--bll);color:var(--bl)}
+.bgr{background:var(--bg);color:var(--mu)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;padding:8px 12px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--mu);border-bottom:1.5px solid var(--bdr)}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--gll)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--rs);font-size:13.5px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn-p{background:var(--g);color:#fff}.btn-p:hover{background:#155535}
+.btn-s{background:var(--sur);color:var(--tx);border:1.5px solid var(--bdr)}.btn-s:hover{background:var(--bg)}
+.btn-d{background:var(--rdl);color:var(--rd);border:1.5px solid #f5c0c0}.btn-d:hover{background:#fbdddd}
+.btn-g{background:transparent;color:var(--mu);border:1.5px solid var(--bdr)}.btn-g:hover{background:var(--bg)}
+.btn-am{background:var(--aml);color:#7a5000;border:1.5px solid #f5d080}.btn-am:hover{background:#ffefc0}
+.btn-sm{padding:6px 12px;font-size:12.5px}.btn-xs{padding:4px 9px;font-size:11.5px}
+.btn-full{width:100%;justify-content:center}
+
+/* ── FORMS ── */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.fg{margin-bottom:13px}
+.fl{display:block;font-size:12px;font-weight:700;color:var(--mu);margin-bottom:5px}
+.fl .req{color:var(--rd)}
+.fc{width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:14px;font-family:inherit;color:var(--tx);background:var(--sur);transition:border .15s;-webkit-appearance:none;appearance:none}
+.fc:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px var(--gl)}
+.fc::placeholder{color:var(--hi)}
+textarea.fc{resize:vertical;min-height:72px}
+.fa{display:flex;gap:9px;justify-content:flex-end;margin-top:16px;padding-top:15px;border-top:1px solid var(--bdr);flex-wrap:wrap}
+
+/* ── ALERTS ── */
+.alrt{padding:10px 14px;border-radius:var(--rs);font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:13px;font-weight:600}
+.aw{background:var(--aml);color:#7a5000;border:1px solid #f5d080}
+.ae{background:var(--rdl);color:var(--rd);border:1px solid #f5b8b8}
+.ao{background:var(--gl);color:var(--g);border:1px solid #a5d9be}
+.ai{background:var(--bll);color:var(--bl);border:1px solid #b0ccf5}
+
+/* ── TOAST ── */
+.tw{position:fixed;top:66px;right:16px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px)}
+.toast{background:var(--tx);color:#fff;padding:11px 16px;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;animation:tin .28s ease;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.t-ok{background:var(--g)}.t-warn{background:#a06800}.t-err{background:var(--rd)}
+@keyframes tin{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── MODAL ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.ov.hide{display:none}
+.modal{background:var(--sur);border-radius:var(--r);padding:24px;width:100%;max-width:580px;max-height:92dvh;overflow-y:auto}
+.mhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.mhd h3{font-family:'Nunito',sans-serif;font-size:17px;font-weight:900}
+.mclose{background:none;border:none;cursor:pointer;color:var(--mu);font-size:22px;line-height:1;padding:4px}
+.mclose:hover{color:var(--tx)}
+
+/* ── STEPPER ── */
+.stepper{display:flex;border:1.5px solid var(--bdr);border-radius:var(--rs);overflow:hidden;margin-bottom:18px}
+.step{flex:1;padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:var(--mu);background:var(--bg);border-right:1px solid var(--bdr);transition:all .2s}
+.step:last-child{border-right:none}
+.step.done{background:var(--gl);color:var(--g)}.step.active{background:var(--g);color:#fff}
+
+/* ── AGENDA ── */
+.ag-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.ag-nav-center{font-size:14px;font-weight:700;color:var(--tx);text-align:center;flex:1}
+.ag-nav-sub{font-size:11.5px;color:var(--mu);font-weight:400;display:block;margin-top:1px}
+.ag-tabs{display:flex;gap:0;border:1.5px solid var(--bdr);border-radius:var(--rs);overflow:hidden;margin-bottom:14px}
+.ag-tab{flex:1;padding:7px 10px;text-align:center;font-size:12px;font-weight:700;color:var(--mu);background:var(--bg);cursor:pointer;border-right:1px solid var(--bdr);transition:all .15s}
+.ag-tab:last-child{border-right:none}
+.ag-tab.active{background:var(--g);color:#fff}
+.ag-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--bdr);border-radius:var(--rs);overflow:hidden}
+.ag-grid{display:grid;min-width:580px}
+.ag-corner{background:var(--bg);border-bottom:1.5px solid var(--bdr);border-right:1.5px solid var(--bdr);padding:8px 4px}
+.ag-hd{background:var(--bg);padding:8px 4px;font-size:11px;font-weight:700;color:var(--mu);text-align:center;border-bottom:1.5px solid var(--bdr);border-right:1px solid var(--bdr);line-height:1.3}
+.ag-hd:last-child{border-right:none}
+.ag-hd.today{background:var(--gl);color:var(--g)}
+.ag-hd .ag-day-num{font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;display:block;line-height:1.1}
+.ag-hd .ag-day-name{font-size:10px;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.5px}
+.ag-time{font-size:10px;color:var(--hi);padding:6px 5px 6px 4px;text-align:right;background:var(--bg);border-bottom:1px solid var(--bdr);border-right:1.5px solid var(--bdr);font-family:monospace;line-height:1;vertical-align:top}
+.ag-cell{padding:2px 3px;border-bottom:1px solid var(--bdr);border-right:1px solid var(--bdr);min-height:44px;vertical-align:top}
+.ag-cell:last-child{border-right:none}
+.ag-cell.today-col{background:rgba(26,107,69,.03)}
+.ag-day-view{display:none;flex-direction:column;gap:0}
+.ag-day-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bdr)}
+.ag-day-row:last-child{border-bottom:none}
+.ag-day-time{font-family:monospace;font-size:11.5px;color:var(--mu);font-weight:600;min-width:46px;padding-top:2px;flex-shrink:0}
+.ag-day-events{display:flex;flex-direction:column;gap:5px;flex:1}
+.ag-day-empty{font-size:12px;color:var(--hi);padding:2px 0;font-style:italic}
+.ev{border-radius:5px;padding:4px 8px;font-size:11px;font-weight:700;margin:1px 0;cursor:pointer;border-left:3px solid;line-height:1.35;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-c{background:#E8F5EE;border-color:var(--g);color:var(--g)}
+.ev-v{background:#FFF4DC;border-color:var(--am);color:#7a5000}
+.ev-b{background:#EBF1FC;border-color:var(--bl);color:var(--bl)}
+.ev-t{background:#F3EDFB;border-color:#7C3FBF;color:#5C2E9A}
+.ev-cancelled{opacity:.4;text-decoration:line-through}
+.ag-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.ag-legend-dot{width:12px;height:12px;border-radius:3px;border-left:3px solid;flex-shrink:0;display:inline-block}
+.ag-empty-slot{font-size:11px;color:var(--hi);padding:4px 2px;font-style:italic}
+
+/* ── PET GRID ── */
+.pet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
+.pet-card{background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--r);padding:15px;cursor:pointer;transition:all .15s}
+.pet-card:hover,.pet-card:active{border-color:var(--g);box-shadow:0 0 0 3px var(--gl)}
+.pet-ava{width:46px;height:46px;border-radius:50%;background:var(--gll);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:9px}
+.info-r{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:12.5px}
+.info-r:last-child{border-bottom:none}
+.info-k{color:var(--mu);font-weight:600}
+
+/* ── ESTOQUE BAR ── */
+.ebar{height:6px;background:var(--bdr);border-radius:4px;overflow:hidden;margin-top:4px}
+.efill{height:100%;border-radius:4px}
+.eok{background:var(--g)}.elow{background:var(--am)}.ecrit{background:var(--rd)}
+
+/* ── HIST ── */
+.hist-i{padding:11px 0;border-bottom:1px solid var(--bdr)}
+.hist-i:last-child{border-bottom:none}
+.hist-dt{font-size:11px;color:var(--hi);margin-bottom:2px}
+.hist-ttl{font-size:13.5px;font-weight:700;margin-bottom:2px}
+.hist-d{font-size:12.5px;color:var(--mu)}
+
+/* ── MISC ── */
+.divider{border:none;border-top:1px solid var(--bdr);margin:13px 0}
+.chip{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11.5px;background:var(--bg);color:var(--mu);font-weight:600}
+.empty{text-align:center;padding:30px 16px;color:var(--hi)}
+.crit-row td{background:#fff8f8!important}.low-row td{background:#fffcf0!important}
+.search-wrap{position:relative;flex:1;min-width:0}
+.search-wrap .ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--hi);font-size:15px;pointer-events:none}
+.search-wrap input{padding-left:34px}
+
+/* ── MOBILE CARD LIST ── */
+.m-card-list{display:none;flex-direction:column;gap:10px}
+.m-card-item{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rs);padding:13px 14px}
+.m-card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:13px}
+.m-card-row:last-child{margin-bottom:0}
+.m-card-key{font-size:11.5px;color:var(--mu);font-weight:600}
+.m-card-actions{display:flex;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);flex-wrap:wrap}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;height:100dvh;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .ham-btn{display:flex}
+  .user-chip .uname{display:none}
+  .alrt-pill .ll{display:none}.alrt-pill .ls{display:inline}
+  .bottom-nav{display:flex}
+  .page{padding-bottom:calc(var(--bar-h) + 16px)}
+  .stats{grid-template-columns:1fr 1fr}
+  .two{grid-template-columns:1fr}
+  .three{grid-template-columns:1fr 1fr}
+  .frow{grid-template-columns:1fr}
+  .frow3{grid-template-columns:1fr 1fr}
+  .tbl-desktop{display:none}
+  .m-card-list{display:flex}
+  .ov{padding:0;align-items:flex-end}
+  .modal{border-radius:var(--r) var(--r) 0 0;max-height:90dvh;max-width:100%}
+  .page-hd{flex-direction:column;gap:10px}
+  .page-hd>.btn{width:100%;justify-content:center}
+  .pet-grid{grid-template-columns:1fr 1fr}
+  .fa{flex-direction:column-reverse}
+  .fa .btn{width:100%;justify-content:center}
+}
+@media(max-width:420px){
+  .three{grid-template-columns:1fr}
+  .frow3{grid-template-columns:1fr}
+  .pet-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="tw" id="tw"></div>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSb()"></div>
+
+<!-- ══════════════════════════════════
+     TELA DE LOGIN
+══════════════════════════════════ -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div style="font-size:40px;margin-bottom:8px">🐾</div>
+      <h1>PetCare Manager</h1>
+      <p>Sistema de Gestão Veterinária</p>
+    </div>
+    <div class="login-title">Selecione seu perfil de acesso</div>
+    <div class="login-roles">
+      <div class="role-btn role-rec" id="rb-rec" onclick="selectRole('recepcionista')">
+        <div class="role-ico">👩‍💼</div>
+        <div class="role-info">
+          <b>Recepcionista</b>
+          <span>Cadastros · Agendamentos · Agenda</span>
+        </div>
+        <span style="margin-left:auto;color:var(--bl);font-weight:700;font-size:18px" id="ck-rec"></span>
+      </div>
+      <div class="role-btn role-vet" id="rb-vet" onclick="selectRole('veterinario')">
+        <div class="role-ico">🩺</div>
+        <div class="role-info">
+          <b>Veterinário</b>
+          <span>Atendimento · Histórico do Pet · Agenda</span>
+        </div>
+        <span style="margin-left:auto;color:var(--pu);font-weight:700;font-size:18px" id="ck-vet"></span>
+      </div>
+      <div class="role-btn role-ger" id="rb-ger" onclick="selectRole('gerente')">
+        <div class="role-ico">🏢</div>
+        <div class="role-info">
+          <b>Gerente</b>
+          <span>Acesso completo · Estoque · Relatórios</span>
+        </div>
+        <span style="margin-left:auto;color:var(--am);font-weight:700;font-size:18px" id="ck-ger"></span>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Senha <span class="req">*</span></label>
+      <input class="fc" type="password" id="loginPwd" placeholder="Digite sua senha..." onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="font-size:11px;color:var(--hi);margin-top:5px">
+        Senhas demo: recepcionista → <b>rec123</b> · veterinário → <b>vet123</b> · gerente → <b>ger123</b>
+      </div>
+    </div>
+    <div class="alrt ae" id="loginErr" style="display:none">⚠️ Selecione um perfil e insira a senha correta.</div>
+    <button class="btn btn-p btn-full" onclick="doLogin()">Entrar →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     APP (visível após login)
+══════════════════════════════════ -->
+<div id="appPage" style="display:none">
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <h1>🐾 PetCare Manager</h1>
+    <p>Sistema de Gestão Veterinária</p>
+  </div>
+  <div class="sb-user" id="sbUser"></div>
+  <nav id="sbNav"></nav>
+  <div class="sb-logout"><button onclick="doLogout()">↩ Sair do sistema</button></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+<header class="topbar">
+  <div class="tb-left">
+    <button class="ham-btn" onclick="toggleSb()" aria-label="Menu">☰</button>
+    <span id="tbTitle">Painel</span>
+  </div>
+  <div class="tb-right">
+    <div class="alrt-pill" id="estPill" style="display:none" onclick="go('estoque')">
+      ⚠️<span class="ll">2 itens com estoque baixo</span><span class="ls">Estoque</span>
+    </div>
+    <div class="user-chip" id="topUser"></div>
+  </div>
+</header>
+
+<div class="page">
+
+<!-- ══ PAINEL ══ -->
+<div class="screen" id="sc-dashboard">
+  <div class="page-hd">
+    <div>
+      <h2 id="dashGreet">Bom dia!</h2>
+      <p id="dashDateSub">Carregando data...</p>
+    </div>
+    <button class="btn btn-p" id="dashBtnAg" style="display:none" onclick="openModal('mNovoAg')">+ Novo Agendamento</button>
+  </div>
+  <div class="stats">
+    <div class="stat green"><div class="stat-lbl">Agendamentos hoje</div><div class="stat-val">8</div><div class="stat-sub">3 confirm. · 5 pend.</div></div>
+    <div class="stat"><div class="stat-lbl">Tutores</div><div class="stat-val">142</div><div class="stat-sub">+3 esta semana</div></div>
+    <div class="stat"><div class="stat-lbl">Pets</div><div class="stat-val">189</div><div class="stat-sub">Cães · Gatos · Outros</div></div>
+    <div class="stat red" id="dashStatEst" style="display:none"><div class="stat-lbl">Alertas estoque</div><div class="stat-val">2</div><div class="stat-sub">Abaixo do mínimo</div></div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="card-title">Próximos atendimentos</div>
+      <div class="tbl-wrap tbl-desktop"><table class="tbl"><thead><tr><th>Hora</th><th>Pet / Tutor</th><th>Serviço</th><th>Status</th></tr></thead><tbody id="dashTbl"></tbody></table></div>
+      <div class="m-card-list" id="dashCards"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-s btn-sm" onclick="go('agenda')">Ver agenda →</button>
+        <button class="btn btn-s btn-sm" id="dashBtnAgLista" style="display:none" onclick="go('agendamentos')">Ver agendamentos →</button>
+      </div>
+    </div>
+    <div class="card" id="dashEstCard" style="display:none">
+      <div class="card-title">Alertas de estoque</div>
+      <div class="alrt ae">⚠️ 2 itens abaixo do estoque mínimo</div>
+      <div class="tbl-wrap tbl-desktop"><table class="tbl"><thead><tr><th>Item</th><th>Atual</th><th>Mín.</th><th>Status</th></tr></thead><tbody><tr class="crit-row"><td><b>Vacina V8</b></td><td>3</td><td>10</td><td><span class="badge br">Crítico</span></td></tr><tr class="low-row"><td><b>Amoxicilina</b></td><td>7</td><td>15</td><td><span class="badge ba">Baixo</span></td></tr><tr><td>Soro 500ml</td><td>22</td><td>10</td><td><span class="badge bg">OK</span></td></tr></tbody></table></div>
+      <div class="m-card-list">
+        <div class="m-card-item crit-row"><div class="m-card-row"><b>Vacina V8</b><span class="badge br">Crítico</span></div><div class="m-card-row"><span class="info-k">Atual: 3 / Mín: 10</span></div></div>
+        <div class="m-card-item low-row"><div class="m-card-row"><b>Amoxicilina</b><span class="badge ba">Baixo</span></div><div class="m-card-row"><span class="info-k">Atual: 7 / Mín: 15</span></div></div>
+      </div>
+      <button class="btn btn-p btn-sm btn-full" style="margin-top:13px" onclick="go('estoque')">Gerenciar estoque →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TUTORES (Recepcionista + Gerente) ══ -->
+<div class="screen" id="sc-tutores">
+  <div class="page-hd">
+    <div><h2>Tutores</h2><p>Cadastro, consulta, edição e exclusão de tutores</p><span class="role-tag rt-rec">👩‍💼 Recepcionista</span></div>
+    <button class="btn btn-p" onclick="openModal('mTutor')">+ Novo Tutor</button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="search-wrap"><span class="ico">🔍</span><input class="fc" placeholder="Buscar por nome, CPF ou telefone..." oninput="filterT(this.value)"></div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap tbl-desktop"><table class="tbl"><thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>E-mail</th><th>Pets</th><th>Ações</th></tr></thead><tbody id="tBody"></tbody></table></div>
+    <div class="m-card-list" id="tCards"></div>
+  </div>
+</div>
+
+<!-- ══ PETS (Recepcionista + Gerente) ══ -->
+<div class="screen" id="sc-pets">
+  <div class="page-hd">
+    <div><h2>Pets</h2><p>Cadastro e consulta de animais</p><span class="role-tag rt-rec">👩‍💼 Recepcionista</span></div>
+    <button class="btn btn-p" onclick="openModal('mPet')">+ Novo Pet</button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="search-wrap" style="flex:1;min-width:160px"><span class="ico">🔍</span><input class="fc" placeholder="Nome do pet ou tutor..." oninput="filterP(this.value)"></div>
+      <select class="fc" style="width:150px;flex-shrink:0" onchange="filterPEsp(this.value)"><option value="">Todas espécies</option><option>Cão</option><option>Gato</option><option>Ave</option><option>Outro</option></select>
+    </div>
+  </div>
+  <div class="pet-grid" id="pGrid"></div>
+</div>
+
+<!-- ══ AGENDA (Todos) ══ -->
+<div class="screen" id="sc-agenda">
+  <div class="page-hd">
+    <div><h2>Agenda</h2><p id="agPageSub">Carregando...</p><span class="role-tag rt-all">👥 Todos os perfis</span></div>
+    <button class="btn btn-p" id="agBtnNovo" style="display:none" onclick="openModal('mNovoAg')">+ Novo Agendamento</button>
+  </div>
+  <div class="card">
+    <!-- Navegação de semana / dia -->
+    <div class="ag-nav">
+      <button class="btn btn-s btn-sm" onclick="agMoveWeek(-1)">← Semana anterior</button>
+      <div class="ag-nav-center">
+        <span id="agNavLabel">Semana</span>
+        <span class="ag-nav-sub" id="agNavSub"></span>
+      </div>
+      <button class="btn btn-s btn-sm" onclick="agMoveWeek(1)">Próxima semana →</button>
+    </div>
+    <!-- Tabs: Semana / Dia -->
+    <div class="ag-tabs">
+      <div class="ag-tab active" id="agTabWeek" onclick="agSwitchView('week')">📅 Semana</div>
+      <div class="ag-tab" id="agTabDay"  onclick="agSwitchView('day')">📋 Dia</div>
+    </div>
+    <!-- Seletor de dia (visível só na aba Dia) -->
+    <div id="agDayPicker" style="display:none;margin-bottom:12px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="agDayBtns"></div>
+    </div>
+    <!-- Grid semanal -->
+    <div class="ag-wrap" id="agWeekWrap">
+      <div class="ag-grid" id="agGrid"></div>
+    </div>
+    <!-- Vista diária -->
+    <div class="ag-day-view" id="agDayView"></div>
+    <!-- Legenda -->
+    <div class="ag-legend">
+      <span style="font-size:11.5px;font-weight:700;color:var(--mu)">Legenda:</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--g)"><span class="ag-legend-dot ev-c"></span>Consulta</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:#7a5000"><span class="ag-legend-dot ev-v"></span>Vacina</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--bl)"><span class="ag-legend-dot ev-b"></span>Banho/Tosa</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:#5C2E9A"><span class="ag-legend-dot ev-t"></span>Tosa</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AGENDAMENTOS (Recepcionista + Gerente) ══ -->
+<div class="screen" id="sc-agendamentos">
+  <div class="page-hd">
+    <div><h2>Agendamentos</h2><p>Criação, alteração e cancelamento</p><span class="role-tag rt-rec">👩‍💼 Recepcionista</span></div>
+    <button class="btn btn-p" onclick="openModal('mNovoAg')">+ Novo Agendamento</button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <div class="search-wrap" style="flex:1;min-width:140px"><span class="ico">🔍</span><input class="fc" placeholder="Buscar..."></div>
+      <select class="fc" style="min-width:140px;flex:1" id="fStatus" onchange="renderAg()"><option value="">Todos os status</option><option>Confirmado</option><option>Pendente</option><option>Cancelado</option></select>
+      <input type="date" class="fc" style="min-width:140px;flex:1" id="filterData">
+    </div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap tbl-desktop"><table class="tbl"><thead><tr><th>Data/Hora</th><th>Pet</th><th>Tutor</th><th>Serviço</th><th>Veterinário</th><th>Status</th><th>Ações</th></tr></thead><tbody id="agBody"></tbody></table></div>
+    <div class="m-card-list" id="agCards"></div>
+  </div>
+</div>
+
+<!-- ══ ATENDIMENTO (Veterinário + Gerente) ══ -->
+<div class="screen" id="sc-atendimento">
+  <div class="page-hd"><div><h2>Registro de Atendimento</h2><p>Registro clínico do atendimento realizado</p><span class="role-tag rt-vet">🩺 Veterinário</span></div></div>
+  <div class="two">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Selecionar atendimento do dia</div>
+        <div class="fg">
+          <label class="fl">Agendamento <span class="req">*</span></label>
+          <select class="fc" id="selAtd" onchange="loadAtd(this.value)">
+            <option value="">— selecione —</option>
+            <option value="1">08:00 · Rex · Consulta</option>
+            <option value="2">09:30 · Luna · Vacina V8</option>
+            <option value="3">14:30 · Thor · Consulta</option>
+          </select>
+        </div>
+      </div>
+      <div class="card" id="atdForm" style="display:none">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0" id="atdIco">🐕</div>
+          <div><div style="font-weight:700;font-size:14.5px" id="atdNome"></div><div style="font-size:12px;color:var(--mu)" id="atdSub"></div></div>
+        </div>
+        <hr class="divider">
+        <div class="fg"><label class="fl">Anamnese / Sintomas <span class="req">*</span></label><textarea class="fc" id="atdAnam" placeholder="Sintomas relatados pelo tutor..."></textarea></div>
+        <div class="fg"><label class="fl">Exame físico</label><textarea class="fc" id="atdExame" rows="2" placeholder="Observações do exame..."></textarea></div>
+        <div class="fg"><label class="fl">Diagnóstico <span class="req">*</span></label><input class="fc" id="atdDiag" placeholder="Ex: Gastroenterite leve"></div>
+        <div class="fg"><label class="fl">Tratamento / Prescrição <span class="req">*</span></label><textarea class="fc" id="atdTrat" rows="2" placeholder="Medicamentos, doses..."></textarea></div>
+        <div class="fg">
+          <label class="fl">Insumo utilizado</label>
+          <select class="fc" id="atdIns"><option value="">— nenhum —</option><option>Vacina V8 (3 disponíveis ⚠️)</option><option>Vacina Antirrábica (18 disp.)</option><option>Antibiótico Amoxicilina (7 disp. ⚠️)</option><option>Soro fisiol. 500ml (22 disp.)</option></select>
+        </div>
+        <div class="fa">
+          <button class="btn btn-g btn-sm">Cancelar</button>
+          <button class="btn btn-p" onclick="salvarAtd()">✓ Registrar Atendimento</button>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Atendimentos recentes</div><div id="atdRec"></div></div>
+  </div>
+</div>
+
+<!-- ══ HISTÓRICO (Veterinário + Gerente) ══ -->
+<div class="screen" id="sc-historico">
+  <div class="page-hd"><div><h2>Histórico do Pet</h2><p>Atendimentos anteriores e informações clínicas</p><span class="role-tag rt-vet">🩺 Veterinário</span></div></div>
+  <div class="two">
+    <div>
+      <div class="card">
+        <div class="card-title">Selecionar pet</div>
+        <div class="fg" style="margin-bottom:12px"><input class="fc" placeholder="Nome do pet ou tutor..." oninput="filterHist(this.value)"></div>
+        <div id="histList" style="display:flex;flex-direction:column;gap:7px"></div>
+      </div>
+    </div>
+    <div class="card" id="histDetail"><div class="empty"><div style="font-size:32px;margin-bottom:8px;opacity:.3">📂</div>Selecione um pet ao lado</div></div>
+  </div>
+</div>
+
+<!-- ══ ESTOQUE (Gerente) ══ -->
+<div class="screen" id="sc-estoque">
+  <div class="page-hd">
+    <div><h2>Controle de Estoque</h2><p>Entrada/saída de insumos e alertas</p><span class="role-tag rt-ger">🏢 Gerente</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-s btn-sm" onclick="openModal('mMov','saida')">↓ Saída</button>
+      <button class="btn btn-p" onclick="openModal('mMov','entrada')">↑ Entrada</button>
+    </div>
+  </div>
+  <div class="three" style="margin-bottom:18px">
+    <div class="stat"><div class="stat-lbl">Total itens</div><div class="stat-val">8</div><div class="stat-sub">tipos</div></div>
+    <div class="stat amber"><div class="stat-lbl">Com alerta</div><div class="stat-val">2</div><div class="stat-sub">abaixo mínimo</div></div>
+    <div class="stat red"><div class="stat-lbl">Críticos</div><div class="stat-val">1</div><div class="stat-sub">urgente</div></div>
+  </div>
+  <div class="alrt ae" style="margin-bottom:15px">⚠️ Vacina V8 em nível crítico (3 un. / mínimo: 10). Reposição urgente.</div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin-bottom:0">Itens em estoque</div>
+      <select class="fc" style="width:180px" onchange="filterEst(this.value)"><option value="">Todos os itens</option><option value="baixo">Estoque baixo</option><option value="ok">Apenas OK</option></select>
+    </div>
+    <div class="tbl-wrap tbl-desktop"><table class="tbl"><thead><tr><th>Item</th><th>Categoria</th><th>Qtd</th><th>Mín.</th><th>Nível</th><th>Status</th><th>Ações</th></tr></thead><tbody id="estBody"></tbody></table></div>
+    <div class="m-card-list" id="estCards"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Últimas movimentações</div>
+    <div class="tbl-wrap tbl-desktop"><table class="tbl"><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Qtd</th><th>Responsável</th></tr></thead><tbody id="movBody"></tbody></table></div>
+    <div class="m-card-list" id="movCards"></div>
+  </div>
+</div>
+
+</div><!-- /page -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav"></nav>
+
+</div><!-- /appPage -->
+
+<!-- ══════════ MODAIS ══════════ -->
+
+<!-- Modal: Novo / Editar Tutor -->
+<div class="ov hide" id="mTutor">
+  <div class="modal">
+    <div class="mhd"><h3 id="mTutorTit">Cadastrar Tutor</h3><button class="mclose" onclick="closeModal('mTutor')">✕</button></div>
+    <div id="alTutor"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Nome completo <span class="req">*</span></label><input class="fc" id="tN" placeholder="Nome completo"></div>
+      <div class="fg"><label class="fl">CPF <span class="req">*</span></label><input class="fc" id="tC" placeholder="000.000.000-00" oninput="mCpf(this)"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Telefone <span class="req">*</span></label><input class="fc" id="tT" placeholder="(11) 99999-9999" oninput="mTel(this)"></div>
+      <div class="fg"><label class="fl">E-mail</label><input class="fc" id="tE" type="email" placeholder="email@exemplo.com"></div>
+    </div>
+    <div class="fg"><label class="fl">Endereço</label><input class="fc" id="tEnd" placeholder="Rua, número, bairro"></div>
+    <div class="fa">
+      <button class="btn btn-g" onclick="closeModal('mTutor')">Cancelar</button>
+      <button class="btn btn-p" id="btnSalvaTutor" onclick="salvarTutor()">✓ Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirmar exclusão de Tutor -->
+<div class="ov hide" id="mDelTutor">
+  <div class="modal" style="max-width:420px">
+    <div class="mhd"><h3>Excluir Tutor</h3><button class="mclose" onclick="closeModal('mDelTutor')">✕</button></div>
+    <div class="alrt ae">⚠️ Esta ação não pode ser desfeita. O tutor e todos os seus vínculos serão removidos.</div>
+    <p id="delTutorNome" style="font-size:14px;margin-bottom:16px"></p>
+    <div class="fa">
+      <button class="btn btn-g" onclick="closeModal('mDelTutor')">Cancelar</button>
+      <button class="btn btn-d" onclick="confirmarDelTutor()">✕ Confirmar Exclusão</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Pet -->
+<div class="ov hide" id="mPet">
+  <div class="modal">
+    <div class="mhd"><h3>Cadastrar Pet</h3><button class="mclose" onclick="closeModal('mPet')">✕</button></div>
+    <div id="alPet"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Nome <span class="req">*</span></label><input class="fc" id="pN" placeholder="Nome do pet"></div>
+      <div class="fg"><label class="fl">Tutor <span class="req">*</span></label><select class="fc" id="pTut"><option value="">— selecione —</option></select></div>
+    </div>
+    <div class="frow3">
+      <div class="fg"><label class="fl">Espécie <span class="req">*</span></label><select class="fc" id="pEsp"><option value="">— sel. —</option><option>Cão</option><option>Gato</option><option>Ave</option><option>Outro</option></select></div>
+      <div class="fg"><label class="fl">Raça</label><input class="fc" id="pR" placeholder="Ex: Labrador"></div>
+      <div class="fg"><label class="fl">Idade</label><input class="fc" id="pId" placeholder="Ex: 3 anos"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Peso (kg)</label><input class="fc" id="pPeso" type="number" step="0.1" placeholder="0.0"></div>
+      <div class="fg"><label class="fl">Cor</label><input class="fc" id="pCor" placeholder="Ex: Caramelo"></div>
+    </div>
+    <div class="fg"><label class="fl">Observações</label><textarea class="fc" id="pObs" rows="2" placeholder="Alergias, medicações..."></textarea></div>
+    <div class="fa">
+      <button class="btn btn-g" onclick="closeModal('mPet')">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarPet()">✓ Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Agendamento -->
+<div class="ov hide" id="mNovoAg">
+  <div class="modal" style="max-width:620px">
+    <div class="mhd"><h3>Novo Agendamento</h3><button class="mclose" onclick="closeModal('mNovoAg')">✕</button></div>
+    <div class="stepper"><div class="step active" id="stp1">1 · Tutor/Pet</div><div class="step" id="stp2">2 · Serviço</div><div class="step" id="stp3">3 · Horário</div><div class="step" id="stp4">4 · Confirmar</div></div>
+    <div id="alAg"></div>
+    <div id="agP1">
+      <div class="frow">
+        <div class="fg"><label class="fl">Buscar tutor <span class="req">*</span></label><input class="fc" id="agBusca" placeholder="Nome, CPF..." oninput="buscarTutAg(this.value)"></div>
+        <div class="fg"><label class="fl">Tutor</label><select class="fc" id="agTutSel" onchange="loadPetsAg(this.value)"><option value="">— busque ao lado —</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Pet <span class="req">*</span></label><select class="fc" id="agPetSel"><option value="">— selecione o tutor —</option></select></div>
+      <div class="alrt ai" id="noTutMsg" style="display:none">Tutor não encontrado. <a href="#" style="color:var(--bl)" onclick="closeModal('mNovoAg');openModal('mTutor');return false">Cadastrar →</a></div>
+    </div>
+    <div id="agP2" style="display:none">
+      <div class="frow">
+        <div class="fg"><label class="fl">Serviço <span class="req">*</span></label><select class="fc" id="agServ"><option value="">— selecione —</option><option>Consulta</option><option>Vacina</option><option>Banho</option><option>Tosa</option><option>Banho e Tosa</option><option>Exame clínico</option></select></div>
+        <div class="fg"><label class="fl">Veterinário</label><select class="fc" id="agVet"><option>Dra. Paula Almeida</option><option>Dr. Marcos Ferreira</option></select></div>
+      </div>
+    </div>
+    <div id="agP3" style="display:none">
+      <div class="frow">
+        <div class="fg"><label class="fl">Data <span class="req">*</span></label><input class="fc" type="date" id="agDt"></div>
+        <div class="fg"><label class="fl">Horário <span class="req">*</span></label>
+          <select class="fc" id="agHr" onchange="checkHr()">
+            <option>08:00</option><option>08:30</option><option>09:00</option><option>09:30</option><option>10:00</option><option>10:30</option><option>11:00</option><option>11:30</option><option>14:00</option><option>14:30</option><option>15:00</option><option>15:30</option><option>16:00</option><option>16:30</option><option>17:00</option>
+          </select>
+        </div>
+      </div>
+      <div class="alrt aw" id="hrConf" style="display:none">⚠️ Horário ocupado. Sugestões: 09:00 · 10:30 · 14:00</div>
+    </div>
+    <div id="agP4" style="display:none">
+      <div class="alrt ai">Confira os dados antes de confirmar.</div>
+      <div class="card-sm" style="background:var(--gll);border-color:#c0e8d4" id="agResumo"></div>
+    </div>
+    <div class="fa">
+      <button class="btn btn-g" id="agBack" style="display:none" onclick="agNav(-1)">← Voltar</button>
+      <button class="btn btn-g" onclick="closeModal('mNovoAg')">Cancelar</button>
+      <button class="btn btn-p" id="agNext" onclick="agNav(1)">Próximo →</button>
+      <button class="btn btn-p" id="agSave" style="display:none" onclick="salvarAg()">✓ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Alterar Agendamento -->
+<div class="ov hide" id="mEditAg">
+  <div class="modal">
+    <div class="mhd"><h3>Alterar Agendamento</h3><button class="mclose" onclick="closeModal('mEditAg')">✕</button></div>
+    <div id="editAgC"></div>
+    <div class="fa">
+      <button class="btn btn-d btn-sm" onclick="cancelarAg()">✕ Cancelar Agendamento</button>
+      <button class="btn btn-g" onclick="closeModal('mEditAg')">Fechar</button>
+      <button class="btn btn-p" onclick="alterarAg()">✓ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Movimentação Estoque -->
+<div class="ov hide" id="mMov">
+  <div class="modal">
+    <div class="mhd"><h3 id="movTit">Registrar Entrada</h3><button class="mclose" onclick="closeModal('mMov')">✕</button></div>
+    <div class="fg"><label class="fl">Item <span class="req">*</span></label>
+      <select class="fc" id="mvItem"><option value="">— selecione —</option><option>Vacina V8</option><option>Vacina Antirrábica</option><option>Antibiótico Amoxicilina</option><option>Soro fisiológico 500ml</option><option>Luvas descartáveis (cx)</option><option>Seringas 5ml</option><option>Gaze estéril</option><option>Álcool 70%</option></select>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Quantidade <span class="req">*</span></label><input class="fc" type="number" id="mvQtd" min="1" placeholder="0"></div>
+      <div class="fg"><label class="fl">Observação</label><input class="fc" id="mvObs" placeholder="NF, fornecedor, motivo..."></div>
+    <div class="fa">
+      <button class="btn btn-g" onclick="closeModal('mMov')">Cancelar</button>
+      <button class="btn btn-p" id="mvBtn" onclick="salvarMov()">✓ Registrar Entrada</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ficha do Pet -->
+<div class="ov hide" id="mFicha">
+  <div class="modal" style="max-width:600px">
+    <div class="mhd"><h3 id="fichaTit">Ficha do Pet</h3><button class="mclose" onclick="closeModal('mFicha')">✕</button></div>
+    <div id="fichaC"></div>
+  </div>
+</div>
+
+<!-- ══════════ SCRIPT ══════════ -->
+<script>
+/* ─── DATA ─── */
+let tutores=[
+  {id:1,nome:'João Silva',    cpf:'123.456.789-00',tel:'(11) 98765-4321',email:'joao@email.com',  end:'Rua das Flores, 10',pets:[1]},
+  {id:2,nome:'Maria Santos',  cpf:'987.654.321-00',tel:'(11) 91234-5678',email:'maria@email.com', end:'Av. Brasil, 45',    pets:[2]},
+  {id:3,nome:'Carlos Lima',   cpf:'456.789.123-00',tel:'(11) 95555-1111',email:'carlos@email.com',end:'Rua Verde, 30',     pets:[3]},
+  {id:4,nome:'Ana Costa',     cpf:'321.654.987-00',tel:'(11) 97777-2222',email:'ana@email.com',   end:'Rua Azul, 7',       pets:[4]},
+  {id:5,nome:'Pedro Nunes',   cpf:'654.321.098-00',tel:'(11) 93333-4444',email:'pedro@email.com', end:'Al. Palmeiras, 99', pets:[5]},
+];
+let pets=[
+  {id:1,nome:'Rex', especie:'Cão', raca:'Labrador',     idade:'4 anos',peso:'28', cor:'Caramelo',    tutorId:1,obs:'Sem alergias',ico:'🐕'},
+  {id:2,nome:'Luna',especie:'Gato',raca:'Siamês',       idade:'2 anos',peso:'3.5',cor:'Branca',       tutorId:2,obs:'Antiparasitário mensal',ico:'🐱'},
+  {id:3,nome:'Bob', especie:'Cão', raca:'Bulldog',      idade:'5 anos',peso:'22', cor:'Malhado',      tutorId:3,obs:'Histórico dermatite',ico:'🐶'},
+  {id:4,nome:'Mel', especie:'Gato',raca:'Persa',        idade:'3 anos',peso:'4',  cor:'Laranja',      tutorId:4,obs:'',ico:'🐈'},
+  {id:5,nome:'Thor',especie:'Cão', raca:'Pastor Alemão',idade:'6 anos',peso:'35', cor:'Preto/Marrom', tutorId:5,obs:'Displasia no quadril',ico:'🐕‍🦺'},
+];
+// Generate dynamic dates based on today
+function getRelDate(offsetDays) {
+  const d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0,10);
+}
+const D0 = getRelDate(0);  // today
+const D1 = getRelDate(1);  // tomorrow
+const D2 = getRelDate(2);
+const D3 = getRelDate(3);
+const DM1= getRelDate(-1); // yesterday
+const DM5= getRelDate(-5);
+const DM15=getRelDate(-15);
+
+let agendamentos=[
+  {id:1,data:D0,  hora:'08:00',petId:1,tutorId:1,servico:'Consulta',    vet:'Dra. Paula Almeida', status:'Confirmado'},
+  {id:2,data:D0,  hora:'09:30',petId:2,tutorId:2,servico:'Vacina',      vet:'Dr. Marcos Ferreira',status:'Pendente'},
+  {id:3,data:D0,  hora:'10:00',petId:3,tutorId:3,servico:'Banho e Tosa',vet:'-',                  status:'Confirmado'},
+  {id:4,data:D0,  hora:'11:00',petId:4,tutorId:4,servico:'Tosa',        vet:'-',                  status:'Pendente'},
+  {id:5,data:D0,  hora:'14:30',petId:5,tutorId:5,servico:'Consulta',    vet:'Dra. Paula Almeida', status:'Confirmado'},
+  {id:6,data:D1,  hora:'09:00',petId:1,tutorId:1,servico:'Exame clínico',vet:'Dr. Marcos Ferreira',status:'Pendente'},
+  {id:7,data:D1,  hora:'10:30',petId:2,tutorId:2,servico:'Consulta',    vet:'Dra. Paula Almeida', status:'Pendente'},
+  {id:8,data:D2,  hora:'08:00',petId:3,tutorId:3,servico:'Vacina',      vet:'Dr. Marcos Ferreira',status:'Pendente'},
+  {id:9,data:D3,  hora:'15:00',petId:4,tutorId:4,servico:'Banho e Tosa',vet:'-',                  status:'Pendente'},
+];
+let atendimentos=[
+  {id:1,data:DM1, petId:1,servico:'Consulta',diag:'Gastroenterite leve',       trat:'Dipirona 500mg 2x/dia · 5 dias',vet:'Dra. Paula'},
+  {id:2,data:DM5, petId:2,servico:'Vacina',  diag:'Vacinação V8 — dose anual', trat:'Nenhum',                        vet:'Dr. Marcos'},
+  {id:3,data:DM15,petId:5,servico:'Consulta',diag:'Displasia quadril — acomp.',trat:'Meloxicam 0,1mg/kg',            vet:'Dra. Paula'},
+];
+let estoque=[
+  {id:1,nome:'Vacina V8',              cat:'Vacina',     qtd:3, min:10},
+  {id:2,nome:'Vacina Antirrábica',     cat:'Vacina',     qtd:18,min:10},
+  {id:3,nome:'Antibiótico Amoxicilina',cat:'Medicamento',qtd:7, min:15},
+  {id:4,nome:'Soro fisiológico 500ml', cat:'Insumo',     qtd:22,min:10},
+  {id:5,nome:'Luvas descartáveis (cx)',cat:'EPI',        qtd:8, min:5},
+  {id:6,nome:'Seringas 5ml',           cat:'Insumo',     qtd:45,min:20},
+  {id:7,nome:'Gaze estéril',           cat:'Insumo',     qtd:30,min:15},
+  {id:8,nome:'Álcool 70%',             cat:'Higiene',    qtd:12,min:5},
+];
+let movs=[
+  {data:D0,  item:'Vacina V8',              tipo:'Saída',  qtd:2, resp:'Dra. Paula'},
+  {data:DM1, item:'Antibiótico Amoxicilina',tipo:'Saída',  qtd:3, resp:'Dr. Marcos'},
+  {data:DM1, item:'Soro fisiológico 500ml', tipo:'Entrada',qtd:10,resp:'Gerência'},
+  {data:DM5, item:'Seringas 5ml',            tipo:'Entrada',qtd:20,resp:'Gerência'},
+];
+
+let nTid=6,nPid=6,nAid=7,nAtdid=4,editAgId=null,mvTipo='entrada',agCur=1;
+let editTutorId=null, delTutorId=null;
+
+/* ─── AUTH ─── */
+const CREDS={recepcionista:'rec123',veterinario:'vet123',gerente:'ger123'};
+const ROLES={
+  recepcionista:{label:'Recepcionista',ico:'👩‍💼',color:'#2558C4',bg:'#EBF1FC',
+    screens:['dashboard','tutores','pets','agenda','agendamentos'],
+    bottomNav:[{sc:'dashboard',ico:'📊',lbl:'Painel'},{sc:'agendamentos',ico:'📋',lbl:'Agenda'},{sc:'tutores',ico:'👤',lbl:'Tutores'},{sc:'pets',ico:'🐶',lbl:'Pets'}],
+    nav:[{sec:'Principal'},{sc:'dashboard',ico:'📊',lbl:'Painel'},
+         {sec:'Cadastros'},{sc:'tutores',ico:'👤',lbl:'Tutores'},{sc:'pets',ico:'🐶',lbl:'Pets'},
+         {sec:'Agendamento'},{sc:'agenda',ico:'📅',lbl:'Agenda'},{sc:'agendamentos',ico:'📋',lbl:'Agendamentos'}]
+  },
+  veterinario:{label:'Veterinário',ico:'🩺',color:'#6B3FA0',bg:'#F3EDFB',
+    screens:['dashboard','agenda','atendimento','historico'],
+    bottomNav:[{sc:'dashboard',ico:'📊',lbl:'Painel'},{sc:'agenda',ico:'📅',lbl:'Agenda'},{sc:'atendimento',ico:'🩺',lbl:'Atend.'},{sc:'historico',ico:'📂',lbl:'Histórico'}],
+    nav:[{sec:'Principal'},{sc:'dashboard',ico:'📊',lbl:'Painel'},
+         {sec:'Atendimento'},{sc:'agenda',ico:'📅',lbl:'Agenda'},{sc:'atendimento',ico:'🩺',lbl:'Atendimento'},{sc:'historico',ico:'📂',lbl:'Histórico do Pet'}]
+  },
+  gerente:{label:'Gerente',ico:'🏢',color:'#D98A00',bg:'#FFF4DC',
+    screens:['dashboard','tutores','pets','agenda','agendamentos','atendimento','historico','estoque'],
+    bottomNav:[{sc:'dashboard',ico:'📊',lbl:'Painel'},{sc:'agendamentos',ico:'📋',lbl:'Agenda'},{sc:'atendimento',ico:'🩺',lbl:'Atend.'},{sc:'estoque',ico:'📦',lbl:'Estoque',bdg:true}],
+    nav:[{sec:'Principal'},{sc:'dashboard',ico:'📊',lbl:'Painel'},
+         {sec:'Cadastros'},{sc:'tutores',ico:'👤',lbl:'Tutores'},{sc:'pets',ico:'🐶',lbl:'Pets'},
+         {sec:'Atendimento'},{sc:'agenda',ico:'📅',lbl:'Agenda'},{sc:'agendamentos',ico:'📋',lbl:'Agendamentos'},{sc:'atendimento',ico:'🩺',lbl:'Atendimento'},{sc:'historico',ico:'📂',lbl:'Histórico do Pet'},
+         {sec:'Gestão'},{sc:'estoque',ico:'📦',lbl:'Estoque',bdg:true}]
+  }
+};
+
+let currentRole=null, selectedRole=null;
+
+function selectRole(r){
+  selectedRole=r;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('rb-'+r.substring(0,3)).classList.add('selected');
+  document.getElementById('ck-rec').textContent='';
+  document.getElementById('ck-vet').textContent='';
+  document.getElementById('ck-ger').textContent='';
+  const map={recepcionista:'rec',veterinario:'vet',gerente:'ger'};
+  document.getElementById('ck-'+map[r]).textContent='✓';
+  document.getElementById('loginErr').style.display='none';
+}
+
+function doLogin(){
+  const pwd=document.getElementById('loginPwd').value;
+  if(!selectedRole||CREDS[selectedRole]!==pwd){
+    document.getElementById('loginErr').style.display='flex';return;
+  }
+  currentRole=selectedRole;
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appPage').style.display='block';
+  buildRoleUI();
+  go('dashboard');
+}
+
+function doLogout(){
+  currentRole=null;selectedRole=null;
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('appPage').style.display='none';
+  document.getElementById('loginPwd').value='';
+  document.getElementById('loginErr').style.display='none';
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  ['ck-rec','ck-vet','ck-ger'].forEach(id=>document.getElementById(id).textContent='');
+}
+
+function buildRoleUI(){
+  const r=ROLES[currentRole];
+  // topbar user chip
+  document.getElementById('topUser').innerHTML=`<div class="tb-ava" style="background:${r.bg};color:${r.color}">${r.ico}</div><span class="uname">${r.label}</span>`;
+  // sidebar user
+  document.getElementById('sbUser').innerHTML=`<div class="sb-user-ava" style="background:${r.bg};color:${r.color}">${r.ico}</div><div class="sb-user-info"><b>${r.label}</b><span>VetBairro</span></div>`;
+  // sidebar nav
+  let navHtml='';
+  r.nav.forEach(item=>{
+    if(item.sec){navHtml+=`<div class="sb-sec">${item.sec}</div>`;}
+    else{navHtml+=`<div class="sb-item" id="sn-${item.sc}" onclick="go('${item.sc}')"><span class="ico">${item.ico}</span>${item.lbl}${item.bdg?`<span class="sb-bdg" id="sbBdg">2</span>`:''}</div>`;}
+  });
+  document.getElementById('sbNav').innerHTML=navHtml;
+  // bottom nav
+  let bnHtml='';
+  r.bottomNav.forEach(item=>{
+    bnHtml+=`<div class="bn-item" id="bn-${item.sc}" onclick="go('${item.sc}')"><span class="ico">${item.ico}</span>${item.lbl}${item.bdg?`<span class="bn-bdg" id="bnBdg">2</span>`:''}</div>`;
+  });
+  document.getElementById('bottomNav').innerHTML=bnHtml;
+  // dashboard extras
+  const isRec=currentRole==='recepcionista',isGer=currentRole==='gerente';
+  document.getElementById('dashBtnAg').style.display=(isRec||isGer)?'inline-flex':'none';
+  document.getElementById('dashBtnAgLista').style.display=(isRec||isGer)?'inline-flex':'none';
+  document.getElementById('dashStatEst').style.display=isGer?'block':'none';
+  document.getElementById('dashEstCard').style.display=isGer?'block':'none';
+  document.getElementById('estPill').style.display=isGer?'flex':'none';
+  document.getElementById('agBtnNovo').style.display=(isRec||isGer)?'inline-flex':'none';
+}
+
+/* ─── SIDEBAR TOGGLE ─── */
+function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('on');}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('on');}
+
+/* ─── NAVIGATION ─── */
+const titles={dashboard:'Painel',tutores:'Tutores',pets:'Pets',agenda:'Agenda',agendamentos:'Agendamentos',atendimento:'Atendimento',historico:'Histórico do Pet',estoque:'Estoque'};
+function go(sc){
+  const r=ROLES[currentRole];
+  if(!r.screens.includes(sc)){toast('Acesso restrito para o seu perfil.','err');return;}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sc-'+sc).classList.add('on');
+  const sn=document.getElementById('sn-'+sc);if(sn)sn.classList.add('active');
+  const bn=document.getElementById('bn-'+sc);if(bn)bn.classList.add('active');
+  document.getElementById('tbTitle').textContent=titles[sc]||sc;
+  closeSb();
+  if(sc==='dashboard')    renderDash();
+  if(sc==='tutores')      renderT();
+  if(sc==='pets')         renderP();
+  if(sc==='agenda')       renderAgenda();
+  if(sc==='agendamentos') renderAg();
+  if(sc==='estoque')      renderEst();
+  if(sc==='atendimento')  renderAtdRec();
+  if(sc==='historico')    renderHistList();
+}
+
+/* ─── TOAST ─── */
+function toast(msg,type='ok'){
+  const d=document.createElement('div');d.className='toast t-'+type;
+  d.innerHTML=(type==='ok'?'✓':type==='warn'?'⚠':'✕')+' '+msg;
+  document.getElementById('tw').appendChild(d);setTimeout(()=>d.remove(),3500);
+}
+
+/* ─── MODAL ─── */
+function openModal(id,extra){
+  document.getElementById(id).classList.remove('hide');
+  if(id==='mPet') fillTutSel();
+  if(id==='mNovoAg') resetAg();
+  if(id==='mMov'){
+    mvTipo=extra||'entrada';
+    document.getElementById('movTit').textContent=mvTipo==='entrada'?'Registrar Entrada':'Registrar Saída';
+    document.getElementById('mvBtn').textContent=mvTipo==='entrada'?'✓ Registrar Entrada':'✓ Registrar Saída';
+  }
+  if(id==='mTutor' && !editTutorId){
+    document.getElementById('mTutorTit').textContent='Cadastrar Tutor';
+    document.getElementById('btnSalvaTutor').textContent='✓ Cadastrar';
+  }
+}
+function closeModal(id){
+  document.getElementById(id).classList.add('hide');
+  if(id==='mTutor'){editTutorId=null;['tN','tC','tT','tE','tEnd'].forEach(i=>document.getElementById(i).value='');document.getElementById('alTutor').innerHTML='';}
+}
+
+/* ─── MASKS ─── */
+function mCpf(el){let v=el.value.replace(/\D/g,'').substring(0,11);v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');el.value=v;}
+function mTel(el){let v=el.value.replace(/\D/g,'').substring(0,11);v=v.length>10?v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3'):v.replace(/(\d{2})(\d{4})(\d{4})/,'($1) $2-$3');el.value=v;}
+
+/* ─── DASHBOARD ─── */
+function renderDash(){
+  // Real date label
+  const now = new Date();
+  const diasSem = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const mesesN  = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  document.getElementById('dashDateSub').textContent =
+    `${diasSem[now.getDay()]}, ${now.getDate()} de ${mesesN[now.getMonth()]} de ${now.getFullYear()} · Clínica VetBairro`;
+  // Today's agendamentos
+  const rows=agendamentos.filter(a=>a.data===D0).slice(0,5);
+  document.getElementById('dashTbl').innerHTML=rows.map(a=>{
+    const p=pets.find(x=>x.id===a.petId)||{nome:'—'};
+    const t=tutores.find(x=>x.id===a.tutorId)||{nome:'—'};
+    const bc=a.status==='Confirmado'?'bg':a.status==='Cancelado'?'br':'ba';
+    return`<tr><td style="font-family:monospace;font-size:12px;font-weight:700">${a.hora}</td><td><b>${p.nome}</b><br><span style="font-size:11px;color:var(--mu)">${t.nome}</span></td><td>${a.servico}</td><td><span class="badge ${bc}">${a.status}</span></td></tr>`;
+  }).join('');
+  document.getElementById('dashCards').innerHTML=rows.map(a=>{
+    const p=pets.find(x=>x.id===a.petId)||{nome:'—'};
+    const bc=a.status==='Confirmado'?'bg':a.status==='Cancelado'?'br':'ba';
+    return`<div class="m-card-item"><div class="m-card-row"><b>${a.hora} · ${p.nome}</b><span class="badge ${bc}">${a.status}</span></div><div class="m-card-row"><span class="info-k">${a.servico}</span></div></div>`;
+  }).join('');
+  const n=ROLES[currentRole].label;
+  document.getElementById('dashGreet').textContent='Bom dia, '+n+' 👋';
+}
+
+/* ─── TUTORES ─── */
+function renderT(list){
+  list=list||tutores;
+  document.getElementById('tBody').innerHTML=list.map(t=>`
+    <tr>
+      <td><b>${t.nome}</b></td>
+      <td style="font-family:monospace;font-size:12px">${t.cpf}</td>
+      <td>${t.tel}</td>
+      <td style="font-size:12px;color:var(--mu)">${t.email}</td>
+      <td><span class="chip">${t.pets.length} pet${t.pets.length!==1?'s':''}</span></td>
+      <td>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button class="btn btn-s btn-xs" onclick="verPetsTutor(${t.id})">🐾 Pets</button>
+          <button class="btn btn-am btn-xs" onclick="editarTutor(${t.id})">✏️ Editar</button>
+          <button class="btn btn-d btn-xs" onclick="pedirDelTutor(${t.id})">🗑 Excluir</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  document.getElementById('tCards').innerHTML=list.map(t=>`
+    <div class="m-card-item">
+      <div class="m-card-row"><b>${t.nome}</b><span class="chip">${t.pets.length} pet${t.pets.length!==1?'s':''}</span></div>
+      <div class="m-card-row"><span class="info-k">${t.cpf}</span><span>${t.tel}</span></div>
+      <div class="m-card-actions">
+        <button class="btn btn-s btn-xs btn-full" onclick="verPetsTutor(${t.id})">🐾 Pets</button>
+        <button class="btn btn-am btn-xs btn-full" onclick="editarTutor(${t.id})">✏️ Editar</button>
+        <button class="btn btn-d btn-xs btn-full" onclick="pedirDelTutor(${t.id})">🗑 Excluir</button>
+      </div>
+    </div>`).join('');
+}
+function filterT(v){const q=v.toLowerCase();renderT(tutores.filter(t=>t.nome.toLowerCase().includes(q)||t.cpf.includes(q)||t.tel.includes(q)));}
+
+function salvarTutor(){
+  const n=document.getElementById('tN').value.trim(),c=document.getElementById('tC').value.trim(),t=document.getElementById('tT').value.trim();
+  if(!n||!c||!t){document.getElementById('alTutor').innerHTML='<div class="alrt ae">⚠️ Preencha nome, CPF e telefone.</div>';return;}
+  if(editTutorId){
+    // EDITAR
+    const exist=tutores.find(x=>x.cpf===c&&x.id!==editTutorId);
+    if(exist){document.getElementById('alTutor').innerHTML='<div class="alrt aw">⚠️ CPF já cadastrado em outro tutor.</div>';return;}
+    const tut=tutores.find(x=>x.id===editTutorId);
+    tut.nome=n;tut.cpf=c;tut.tel=t;tut.email=document.getElementById('tE').value;tut.end=document.getElementById('tEnd').value;
+    closeModal('mTutor');renderT();toast('Tutor atualizado com sucesso!');
+  } else {
+    // NOVO
+    if(tutores.find(x=>x.cpf===c)){document.getElementById('alTutor').innerHTML='<div class="alrt aw">⚠️ CPF já cadastrado.</div>';return;}
+    tutores.push({id:nTid++,nome:n,cpf:c,tel:t,email:document.getElementById('tE').value,end:document.getElementById('tEnd').value,pets:[]});
+    closeModal('mTutor');renderT();toast('Tutor cadastrado com sucesso!');
+  }
+}
+
+function editarTutor(id){
+  editTutorId=id;
+  const t=tutores.find(x=>x.id===id);
+  document.getElementById('mTutorTit').textContent='Editar Tutor';
+  document.getElementById('btnSalvaTutor').textContent='✓ Salvar Alterações';
+  document.getElementById('tN').value=t.nome;
+  document.getElementById('tC').value=t.cpf;
+  document.getElementById('tT').value=t.tel;
+  document.getElementById('tE').value=t.email;
+  document.getElementById('tEnd').value=t.end;
+  document.getElementById('alTutor').innerHTML='';
+  openModal('mTutor');
+}
+
+function pedirDelTutor(id){
+  delTutorId=id;
+  const t=tutores.find(x=>x.id===id);
+  document.getElementById('delTutorNome').innerHTML=`Você está prestes a excluir: <b>${t.nome}</b> (${t.cpf})<br><span style="font-size:12px;color:var(--mu)">Este tutor possui ${t.pets.length} pet(s) vinculado(s).</span>`;
+  document.getElementById('mDelTutor').classList.remove('hide');
+}
+
+function confirmarDelTutor(){
+  tutores=tutores.filter(x=>x.id!==delTutorId);
+  document.getElementById('mDelTutor').classList.add('hide');
+  renderT();toast('Tutor excluído.','warn');delTutorId=null;
+}
+
+function fillTutSel(){document.getElementById('pTut').innerHTML='<option value="">— selecione —</option>'+tutores.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('');}
+
+function verPetsTutor(tid){
+  const t=tutores.find(x=>x.id===tid),pl=pets.filter(p=>p.tutorId===tid);
+  document.getElementById('fichaTit').textContent='Pets de '+t.nome;
+  document.getElementById('fichaC').innerHTML=
+    `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px"><span class="chip">${t.tel}</span><span class="chip">${t.cpf}</span></div>`+
+    (pl.length?pl.map(p=>`<div class="card-sm" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px;flex-shrink:0">${p.ico}</div>
+      <div style="flex:1"><b>${p.nome}</b><div style="font-size:12px;color:var(--mu)">${p.especie} · ${p.raca} · ${p.idade}</div></div>
+      <button class="btn btn-s btn-xs" onclick="goHist(${p.id})">Histórico</button>
+    </div>`).join(''):'<div class="empty">Nenhum pet cadastrado.</div>');
+  openModal('mFicha');
+}
+
+/* ─── PETS ─── */
+function renderP(list){
+  list=list||pets;
+  document.getElementById('pGrid').innerHTML=list.map(p=>{
+    const t=tutores.find(x=>x.id===p.tutorId)||{nome:'—'};
+    return`<div class="pet-card" onclick="goHist(${p.id})">
+      <div class="pet-ava">${p.ico}</div>
+      <div style="font-weight:700;font-size:14px">${p.nome}</div>
+      <div style="font-size:12px;color:var(--mu);margin-bottom:8px">${p.especie} · ${p.raca}</div>
+      <div class="info-r"><span class="info-k">Tutor</span><span>${t.nome}</span></div>
+      <div class="info-r"><span class="info-k">Idade</span><span>${p.idade}</span></div>
+      <div class="info-r"><span class="info-k">Peso</span><span>${p.peso} kg</span></div>
+      ${p.obs?`<div style="font-size:11px;color:var(--mu);margin-top:6px;padding-top:6px;border-top:1px solid var(--bdr)">${p.obs}</div>`:''}
+    </div>`;}).join('');
+}
+function filterP(v){const q=v.toLowerCase();renderP(pets.filter(p=>{const t=tutores.find(x=>x.id===p.tutorId)||{nome:''};return p.nome.toLowerCase().includes(q)||t.nome.toLowerCase().includes(q);}));}
+function filterPEsp(v){renderP(v?pets.filter(p=>p.especie===v):pets);}
+function salvarPet(){
+  const n=document.getElementById('pN').value.trim(),tid=parseInt(document.getElementById('pTut').value),esp=document.getElementById('pEsp').value;
+  if(!n||!tid||!esp){document.getElementById('alPet').innerHTML='<div class="alrt ae">⚠️ Campos obrigatórios não preenchidos.</div>';return;}
+  const p={id:nPid++,nome:n,especie:esp,raca:document.getElementById('pR').value,idade:document.getElementById('pId').value,peso:document.getElementById('pPeso').value||'—',cor:document.getElementById('pCor').value,tutorId:tid,obs:document.getElementById('pObs').value,ico:esp==='Cão'?'🐕':esp==='Gato'?'🐱':esp==='Ave'?'🦜':'🐾'};
+  pets.push(p);tutores.find(t=>t.id===tid).pets.push(p.id);
+  closeModal('mPet');renderP();toast('Pet cadastrado com sucesso!');
+  document.getElementById('alPet').innerHTML='';
+  ['pN','pR','pId','pPeso','pCor','pObs'].forEach(i=>document.getElementById(i).value='');
+}
+
+/* ─── AGENDA — CALENDAR ENGINE ─── */
+
+// State
+let agViewMode = 'week';      // 'week' | 'day'
+let agWeekOffset = 0;         // weeks relative to today
+let agSelectedDay = 0;        // day index 0-6 within displayed week
+
+const HORAS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+// Returns Monday of the week at given offset from today
+function getWeekStart(offset) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const dow = today.getDay(); // 0=Sun
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
+  return monday;
+}
+
+function formatDateISO(d) {
+  return d.toISOString().slice(0,10);
+}
+
+function formatDateLabel(d) {
+  return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+}
+
+function isSameDay(d, isoStr) {
+  return formatDateISO(d) === isoStr;
+}
+
+function isToday(d) {
+  return formatDateISO(d) === formatDateISO(new Date());
+}
+
+function evClass(servico) {
+  if(!servico) return 'c';
+  if(servico.toLowerCase().includes('vacina')) return 'v';
+  if(servico.toLowerCase().includes('banho') || servico.toLowerCase().includes('tosa e banho')) return 'b';
+  if(servico.toLowerCase() === 'tosa') return 't';
+  return 'c';
+}
+
+function evLabel(e) {
+  const p = pets.find(x=>x.id===e.petId)||{nome:'?'};
+  return `${e.hora} · ${p.nome} — ${e.servico}`;
+}
+
+function agMoveWeek(dir) {
+  agWeekOffset += dir;
+  renderAgenda();
+}
+
+function agSwitchView(mode) {
+  agViewMode = mode;
+  renderAgenda();
+}
+
+function agSelectDay(idx) {
+  agSelectedDay = idx;
+  renderAgendaDayView();
+  // update day buttons highlight
+  document.querySelectorAll('.ag-day-btn').forEach((b,i)=>{
+    b.style.background = i===idx ? 'var(--g)' : 'var(--sur)';
+    b.style.color      = i===idx ? '#fff'      : 'var(--tx)';
+    b.style.borderColor= i===idx ? 'var(--g)'  : 'var(--bdr)';
+  });
+}
+
+function renderAgenda() {
+  const weekStart = getWeekStart(agWeekOffset);
+  const weekDays  = Array.from({length:7}, (_,i)=>{
+    const d = new Date(weekStart); d.setDate(weekStart.getDate()+i); return d;
+  });
+
+  // Update page subtitle
+  const wEnd = weekDays[6];
+  const monthSame = weekStart.getMonth() === wEnd.getMonth();
+  const subLabel = monthSame
+    ? `${weekStart.getDate()} a ${wEnd.getDate()} de ${MESES[weekStart.getMonth()]} de ${weekStart.getFullYear()}`
+    : `${formatDateLabel(weekStart)} a ${formatDateLabel(wEnd)} de ${weekStart.getFullYear()}`;
+
+  document.getElementById('agPageSub').textContent = subLabel;
+  document.getElementById('agNavLabel').textContent = 'Semana ' + subLabel;
+  document.getElementById('agNavSub').textContent   = '';
+
+  // Switch tabs UI
+  document.getElementById('agTabWeek').className = 'ag-tab'+(agViewMode==='week'?' active':'');
+  document.getElementById('agTabDay').className  = 'ag-tab'+(agViewMode==='day' ?' active':'');
+  document.getElementById('agWeekWrap').style.display = agViewMode==='week'?'block':'none';
+  document.getElementById('agDayView').style.display  = agViewMode==='day' ?'flex':'none';
+  document.getElementById('agDayPicker').style.display= agViewMode==='day' ?'block':'none';
+
+  if(agViewMode==='week') {
+    renderAgendaWeek(weekDays);
+  } else {
+    renderDayPicker(weekDays);
+    renderAgendaDayView(weekDays);
+  }
+}
+
+function renderAgendaWeek(weekDays) {
+  const canEdit = currentRole==='recepcionista'||currentRole==='gerente';
+  const cols = 1 + weekDays.length; // time col + 7 days
+  let html = '';
+
+  // Set grid columns
+  document.getElementById('agGrid').style.gridTemplateColumns = `58px repeat(${weekDays.length},1fr)`;
+
+  // Header row
+  html += `<div class="ag-corner"></div>`;
+  weekDays.forEach(d => {
+    const todayCls = isToday(d) ? ' today' : '';
+    html += `<div class="ag-hd${todayCls}">
+      <span class="ag-day-name">${DIAS_SEMANA[d.getDay()]}</span>
+      <span class="ag-day-num">${d.getDate()}</span>
+    </div>`;
+  });
+
+  // Time rows
+  HORAS.forEach(hr => {
+    html += `<div class="ag-time">${hr}</div>`;
+    weekDays.forEach(d => {
+      const iso  = formatDateISO(d);
+      const evs  = agendamentos.filter(a => a.data===iso && a.hora===hr && a.status!=='Cancelado');
+      const todayCls = isToday(d) ? ' today-col' : '';
+      let inner = evs.map(e => {
+        const cls = evClass(e.servico);
+        const p   = pets.find(x=>x.id===e.petId)||{nome:'?'};
+        const click = canEdit ? `onclick="editAg(${e.id})"` : '';
+        return `<div class="ev ev-${cls}" ${click} title="${p.nome} · ${e.servico} · ${e.vet}">${p.nome}</div>`;
+      }).join('');
+      if(!inner) inner = '';
+      html += `<div class="ag-cell${todayCls}">${inner}</div>`;
+    });
+  });
+
+  document.getElementById('agGrid').innerHTML = html;
+}
+
+function renderDayPicker(weekDays) {
+  const btns = weekDays.map((d,i) => {
+    const todayBorder = isToday(d) ? 'var(--g)' : 'var(--bdr)';
+    const count = agendamentos.filter(a=>a.data===formatDateISO(d)&&a.status!=='Cancelado').length;
+    const bg = i===agSelectedDay ? 'var(--g)' : 'var(--sur)';
+    const col= i===agSelectedDay ? '#fff' : 'var(--tx)';
+    return `<button class="btn ag-day-btn" style="flex:1;min-width:60px;flex-direction:column;gap:2px;padding:8px 4px;background:${bg};color:${col};border:1.5px solid ${i===agSelectedDay?'var(--g)':'var(--bdr)'};border-radius:var(--rs);font-size:11px" onclick="agSelectDay(${i})">
+      <span style="font-weight:700;font-size:13px">${d.getDate()}</span>
+      <span style="opacity:.8">${DIAS_SEMANA[d.getDay()]}</span>
+      ${count>0?`<span style="background:${i===agSelectedDay?'rgba(255,255,255,.3)':'var(--gl)'};color:${i===agSelectedDay?'#fff':'var(--g)'};border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800">${count}</span>`:''}
+    </button>`;
+  }).join('');
+  document.getElementById('agDayBtns').innerHTML = btns;
+}
+
+function renderAgendaDayView(weekDays) {
+  if(!weekDays) {
+    const ws = getWeekStart(agWeekOffset);
+    weekDays = Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(ws.getDate()+i);return d;});
+  }
+  const canEdit = currentRole==='recepcionista'||currentRole==='gerente';
+  const d   = weekDays[agSelectedDay];
+  const iso = formatDateISO(d);
+
+  document.getElementById('agNavSub').textContent =
+    `${DIAS_SEMANA[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}`;
+
+  let html = HORAS.map(hr => {
+    const evs = agendamentos.filter(a=>a.data===iso&&a.hora===hr&&a.status!=='Cancelado');
+    const inner = evs.length
+      ? evs.map(e=>{
+          const cls = evClass(e.servico);
+          const p   = pets.find(x=>x.id===e.petId)||{nome:'?'};
+          const t   = tutores.find(x=>x.id===e.tutorId)||{nome:''};
+          const click = canEdit ? `onclick="editAg(${e.id})"` : '';
+          return `<div class="ev ev-${cls}" ${click}>${p.nome} <span style="opacity:.7;font-weight:400">· ${e.servico} · ${t.nome}</span></div>`;
+        }).join('')
+      : `<div class="ag-day-empty">Horário disponível</div>`;
+    return `<div class="ag-day-row">
+      <div class="ag-day-time">${hr}</div>
+      <div class="ag-day-events">${inner}</div>
+    </div>`;
+  }).join('');
+
+  if(!html) html = '<div class="empty">Nenhum horário configurado.</div>';
+  document.getElementById('agDayView').innerHTML = html;
+}
+
+/* ─── AGENDAMENTOS ─── */
+function renderAg(){
+  const sf=document.getElementById('fStatus').value;
+  let list=agendamentos;if(sf)list=list.filter(a=>a.status===sf);
+  const bc=s=>s==='Confirmado'?'bg':s==='Cancelado'?'br':'ba';
+  document.getElementById('agBody').innerHTML=list.map(a=>{
+    const p=pets.find(x=>x.id===a.petId)||{nome:'—',ico:'🐾'};
+    const t=tutores.find(x=>x.id===a.tutorId)||{nome:'—'};
+    return`<tr><td style="font-family:monospace;font-size:12px;font-weight:700">${a.data}<br>${a.hora}</td><td>${p.ico} <b>${p.nome}</b></td><td>${t.nome}</td><td>${a.servico}</td><td style="font-size:12px">${a.vet}</td><td><span class="badge ${bc(a.status)}">${a.status}</span></td><td><button class="btn btn-s btn-xs" onclick="editAg(${a.id})">Editar</button></td></tr>`;
+  }).join('');
+  document.getElementById('agCards').innerHTML=list.map(a=>{
+    const p=pets.find(x=>x.id===a.petId)||{nome:'—',ico:'🐾'};
+    const t=tutores.find(x=>x.id===a.tutorId)||{nome:'—'};
+    return`<div class="m-card-item">
+      <div class="m-card-row"><b>${p.ico} ${p.nome} — ${a.servico}</b><span class="badge ${bc(a.status)}">${a.status}</span></div>
+      <div class="m-card-row"><span class="info-k">${a.data} ${a.hora}</span><span style="font-size:12px;color:var(--mu)">${t.nome}</span></div>
+      <div class="m-card-actions"><button class="btn btn-s btn-xs btn-full" onclick="editAg(${a.id})">✏️ Editar / Cancelar</button></div>
+    </div>`;
+  }).join('');
+}
+
+/* ─── AG STEPPER ─── */
+function resetAg(){
+  agCur=1;['agP1','agP2','agP3','agP4'].forEach((id,i)=>document.getElementById(id).style.display=i===0?'block':'none');
+  document.getElementById('agBack').style.display='none';
+  document.getElementById('agNext').style.display='inline-flex';
+  document.getElementById('agSave').style.display='none';
+  document.getElementById('alAg').innerHTML='';
+  document.getElementById('hrConf').style.display='none';
+  document.getElementById('noTutMsg').style.display='none';
+  // Set default date to today
+  document.getElementById('agDt').value = D0;
+  updStp();
+}
+function updStp(){[1,2,3,4].forEach(i=>{const el=document.getElementById('stp'+i);el.className='step'+(i===agCur?' active':i<agCur?' done':'');});}
+function agNav(d){
+  if(d===1){
+    if(agCur===1){const ts=document.getElementById('agTutSel').value,ps=document.getElementById('agPetSel').value;if(!ts||!ps){document.getElementById('alAg').innerHTML='<div class="alrt ae">⚠️ Selecione tutor e pet.</div>';return;}}
+    if(agCur===2){const sv=document.getElementById('agServ').value;if(!sv){document.getElementById('alAg').innerHTML='<div class="alrt ae">⚠️ Selecione o serviço.</div>';return;}}
+    if(agCur===3){checkHr();}
+    if(agCur===3) buildResumo();
+    agCur=Math.min(agCur+1,4);
+  } else {agCur=Math.max(agCur-1,1);}
+  document.getElementById('alAg').innerHTML='';
+  ['agP1','agP2','agP3','agP4'].forEach((id,i)=>document.getElementById(id).style.display=(i+1===agCur?'block':'none'));
+  document.getElementById('agBack').style.display=agCur>1?'inline-flex':'none';
+  document.getElementById('agNext').style.display=agCur<4?'inline-flex':'none';
+  document.getElementById('agSave').style.display=agCur===4?'inline-flex':'none';
+  updStp();
+}
+function checkHr(){const hr=document.getElementById('agHr').value,dt=document.getElementById('agDt').value;document.getElementById('hrConf').style.display=agendamentos.find(a=>a.data===dt&&a.hora===hr)?'flex':'none';}
+function buscarTutAg(v){
+  const q=v.toLowerCase().trim(),sel=document.getElementById('agTutSel');
+  if(q.length<2){sel.innerHTML='<option value="">— busque acima —</option>';document.getElementById('noTutMsg').style.display='none';return;}
+  const found=tutores.filter(t=>t.nome.toLowerCase().includes(q)||t.cpf.includes(q)||t.tel.includes(q));
+  if(!found.length){sel.innerHTML='<option value="">Nenhum</option>';document.getElementById('noTutMsg').style.display='flex';}
+  else{sel.innerHTML='<option value="">— selecione —</option>'+found.map(t=>`<option value="${t.id}">${t.nome} · ${t.cpf}</option>`).join('');document.getElementById('noTutMsg').style.display='none';}
+}
+function loadPetsAg(tid){
+  const sel=document.getElementById('agPetSel');if(!tid){sel.innerHTML='<option value="">— selecione o tutor —</option>';return;}
+  const list=pets.filter(p=>p.tutorId==tid);
+  sel.innerHTML=list.length?'<option value="">— selecione —</option>'+list.map(p=>`<option value="${p.id}">${p.ico} ${p.nome} (${p.especie})</option>`).join(''):'<option value="">Nenhum pet cadastrado</option>';
+}
+function buildResumo(){
+  const tId=document.getElementById('agTutSel').value,pId=document.getElementById('agPetSel').value;
+  const t=tutores.find(x=>x.id==tId)||{nome:'—'},p=pets.find(x=>x.id==pId)||{nome:'—',especie:'—'};
+  const s=document.getElementById('agServ').value,v=document.getElementById('agVet').value;
+  const d=document.getElementById('agDt').value,h=document.getElementById('agHr').value;
+  document.getElementById('agResumo').innerHTML=`
+    <div class="info-r"><span class="info-k">Tutor</span><b>${t.nome}</b></div>
+    <div class="info-r"><span class="info-k">Pet</span><b>${p.nome}</b> (${p.especie})</div>
+    <div class="info-r"><span class="info-k">Serviço</span>${s}</div>
+    <div class="info-r"><span class="info-k">Veterinário</span>${v}</div>
+    <div class="info-r"><span class="info-k">Data / Hora</span><b>${d} às ${h}</b></div>`;
+}
+function salvarAg(){
+  agendamentos.push({id:nAid++,data:document.getElementById('agDt').value,hora:document.getElementById('agHr').value,petId:parseInt(document.getElementById('agPetSel').value),tutorId:parseInt(document.getElementById('agTutSel').value),servico:document.getElementById('agServ').value,vet:document.getElementById('agVet').value,status:'Pendente'});
+  closeModal('mNovoAg');renderAg();renderAgenda();toast('Agendamento criado com sucesso!');
+}
+
+/* ─── EDIT AG ─── */
+function editAg(id){
+  editAgId=id;const a=agendamentos.find(x=>x.id===id);
+  const p=pets.find(x=>x.id===a.petId)||{nome:'—'};
+  document.getElementById('editAgC').innerHTML=`
+    <div class="alrt ai" style="margin-bottom:14px"><b>${p.nome}</b> · ${a.servico} · ${a.data} ${a.hora}</div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Data</label><input class="fc" type="date" id="eaDt" value="${a.data}"></div>
+      <div class="fg"><label class="fl">Horário</label><select class="fc" id="eaHr">${['08:00','08:30','09:00','09:30','10:00','10:30','11:00','14:00','14:30','15:00','15:30','16:00','17:00'].map(h=>`<option${h===a.hora?' selected':''}>${h}</option>`).join('')}</select></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Serviço</label><select class="fc" id="eaSv">${['Consulta','Vacina','Banho','Tosa','Banho e Tosa','Exame clínico'].map(s=>`<option${s===a.servico?' selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Status</label><select class="fc" id="eaSt">${['Pendente','Confirmado','Cancelado'].map(s=>`<option${s===a.status?' selected':''}>${s}</option>`).join('')}</select></div>
+    </div>`;
+  openModal('mEditAg');
+}
+function alterarAg(){
+  const a=agendamentos.find(x=>x.id===editAgId);
+  a.data=document.getElementById('eaDt').value;a.hora=document.getElementById('eaHr').value;
+  a.servico=document.getElementById('eaSv').value;a.status=document.getElementById('eaSt').value;
+  closeModal('mEditAg');renderAg();renderAgenda();toast('Agendamento atualizado!');
+}
+function cancelarAg(){
+  agendamentos.find(x=>x.id===editAgId).status='Cancelado';
+  closeModal('mEditAg');renderAg();renderAgenda();toast('Agendamento cancelado.','warn');
+}
+
+/* ─── ATENDIMENTO ─── */
+function loadAtd(v){
+  const f=document.getElementById('atdForm');if(!v){f.style.display='none';return;}
+  const a=agendamentos.find(x=>x.id==v);if(!a){f.style.display='none';return;}
+  const p=pets.find(x=>x.id===a.petId)||{nome:'—',especie:'—',raca:'—',ico:'🐾'};
+  document.getElementById('atdIco').textContent=p.ico;
+  document.getElementById('atdNome').textContent=p.nome+' · '+a.servico;
+  document.getElementById('atdSub').textContent=p.especie+' · '+p.raca+' · '+a.vet;
+  f.style.display='block';
+}
+function salvarAtd(){
+  const an=document.getElementById('atdAnam').value.trim(),dg=document.getElementById('atdDiag').value.trim(),tr=document.getElementById('atdTrat').value.trim();
+  if(!an||!dg||!tr){toast('Campos obrigatórios não preenchidos.','err');return;}
+  const sv=document.getElementById('selAtd').value,ag=agendamentos.find(x=>x.id==sv);
+  atendimentos.push({id:nAtdid++,data:D0,petId:ag?ag.petId:0,servico:ag?ag.servico:'Consulta',diag:dg,trat:tr,vet:ag?ag.vet:'—'});
+  if(ag) ag.status='Confirmado';
+  ['atdAnam','atdDiag','atdTrat','atdExame'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('selAtd').value='';document.getElementById('atdForm').style.display='none';
+  renderAtdRec();renderAgenda();toast('Atendimento registrado com sucesso!');
+}
+function renderAtdRec(){
+  const list=[...atendimentos].reverse().slice(0,6);
+  document.getElementById('atdRec').innerHTML=list.length?list.map(a=>{
+    const p=pets.find(x=>x.id===a.petId)||{nome:'—',ico:'🐾'};
+    return`<div class="hist-i"><div class="hist-dt">${a.data} · ${a.vet}</div><div class="hist-ttl">${p.ico} ${p.nome} — ${a.servico}</div><div class="hist-d">${a.diag}</div></div>`;
+  }).join(''):'<div class="empty">Nenhum atendimento ainda.</div>';
+}
+
+/* ─── HISTÓRICO ─── */
+function renderHistList(list){
+  list=list||pets;
+  document.getElementById('histList').innerHTML=list.map(p=>{
+    const t=tutores.find(x=>x.id===p.tutorId)||{nome:'—'};
+    return`<div onclick="showHist(${p.id})" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:var(--rs);cursor:pointer;background:var(--sur);transition:border .15s" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--bdr)'">
+      <span style="font-size:20px;flex-shrink:0">${p.ico}</span>
+      <div style="min-width:0"><div style="font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome}</div><div style="font-size:11.5px;color:var(--mu)">${p.especie} · ${t.nome}</div></div>
+      <span style="margin-left:auto;color:var(--g);font-weight:700;font-size:12px;flex-shrink:0">Ver →</span>
+    </div>`;
+  }).join('');
+}
+function filterHist(v){const q=v.toLowerCase();renderHistList(pets.filter(p=>{const t=tutores.find(x=>x.id===p.tutorId)||{nome:''};return p.nome.toLowerCase().includes(q)||t.nome.toLowerCase().includes(q);}));}
+function showHist(pid){
+  const p=pets.find(x=>x.id===pid),t=tutores.find(x=>x.id===p.tutorId)||{nome:'—'};
+  const hist=atendimentos.filter(a=>a.petId===pid);
+  document.getElementById('histDetail').innerHTML=`
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+      <div class="pet-ava">${p.ico}</div>
+      <div><div style="font-weight:700;font-size:15px">${p.nome}</div><div style="font-size:12px;color:var(--mu)">${p.especie} · ${p.raca} · ${p.idade} · ${t.nome}</div></div>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="chip">Peso: ${p.peso} kg</span><span class="chip">Cor: ${p.cor||'—'}</span>${p.obs?`<span class="chip">⚠ ${p.obs}</span>`:''}
+    </div>
+    <hr class="divider">
+    <div class="card-title">Histórico de atendimentos</div>
+    ${hist.length?hist.map(a=>`<div class="hist-i"><div class="hist-dt">${a.data} · ${a.vet}</div><div class="hist-ttl">${a.servico}</div><div class="hist-d">Diagnóstico: ${a.diag}</div><div class="hist-d">Tratamento: ${a.trat}</div></div>`).join(''):'<div class="empty">Nenhum atendimento registrado.</div>'}`;
+}
+function goHist(pid){
+  closeModal('mFicha');
+  if(ROLES[currentRole].screens.includes('historico')){
+    go('historico');setTimeout(()=>showHist(pid),80);
+  }
+}
+
+/* ─── ESTOQUE ─── */
+function renderEst(filter){
+  let list=estoque;
+  if(filter==='baixo') list=list.filter(i=>i.qtd<i.min);
+  else if(filter==='ok') list=list.filter(i=>i.qtd>=i.min);
+  const pct=i=>Math.min(100,Math.round(i.qtd/i.min*100));
+  const st=i=>{if(i.qtd===0)return'<span class="badge br">Esgotado</span>';if(i.qtd<i.min*.4)return'<span class="badge br">Crítico</span>';if(i.qtd<i.min)return'<span class="badge ba">Baixo</span>';return'<span class="badge bg">OK</span>';};
+  const fc=i=>i.qtd<i.min*.4?'ecrit':i.qtd<i.min?'elow':'eok';
+  const rc=i=>i.qtd<i.min*.4?' class="crit-row"':i.qtd<i.min?' class="low-row"':'';
+  document.getElementById('estBody').innerHTML=list.map(i=>`
+    <tr${rc(i)}><td><b>${i.nome}</b></td><td><span class="chip">${i.cat}</span></td><td><b>${i.qtd}</b></td><td>${i.min}</td>
+    <td style="min-width:90px"><div style="font-size:11px;color:var(--mu);margin-bottom:2px">${pct(i)}%</div><div class="ebar"><div class="efill ${fc(i)}" style="width:${pct(i)}%"></div></div></td>
+    <td>${st(i)}</td>
+    <td style="display:flex;gap:4px"><button class="btn btn-s btn-xs" onclick="openModal('mMov','entrada')">↑</button><button class="btn btn-s btn-xs" onclick="openModal('mMov','saida')">↓</button></td>
+    </tr>`).join('');
+  document.getElementById('estCards').innerHTML=list.map(i=>`
+    <div class="m-card-item${i.qtd<i.min*.4?' crit-row':i.qtd<i.min?' low-row':''}">
+      <div class="m-card-row"><b>${i.nome}</b>${st(i)}</div>
+      <div class="m-card-row"><span class="info-k">Atual: ${i.qtd}</span><span class="info-k">Mín: ${i.min}</span></div>
+      <div class="ebar" style="margin:6px 0"><div class="efill ${fc(i)}" style="width:${pct(i)}%"></div></div>
+      <div class="m-card-actions">
+        <button class="btn btn-s btn-xs btn-full" onclick="openModal('mMov','entrada')">↑ Entrada</button>
+        <button class="btn btn-s btn-xs btn-full" onclick="openModal('mMov','saida')">↓ Saída</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('movBody').innerHTML=movs.map(m=>`
+    <tr><td style="font-size:12px">${m.data}</td><td>${m.item}</td>
+    <td><span class="badge ${m.tipo==='Entrada'?'bg':'ba'}">${m.tipo}</span></td>
+    <td><b>${m.tipo==='Entrada'?'+':'−'}${m.qtd}</b></td>
+    <td style="font-size:12px;color:var(--mu)">${m.resp}</td></tr>`).join('');
+  document.getElementById('movCards').innerHTML=movs.map(m=>`
+    <div class="m-card-item">
+      <div class="m-card-row"><b>${m.item}</b><span class="badge ${m.tipo==='Entrada'?'bg':'ba'}">${m.tipo} ${m.tipo==='Entrada'?'+':'−'}${m.qtd}</span></div>
+      <div class="m-card-row"><span class="info-k">${m.data}</span><span style="font-size:12px;color:var(--mu)">${m.resp}</span></div>
+    </div>`).join('');
+  const baixos=estoque.filter(i=>i.qtd<i.min).length;
+  ['sbBdg','bnBdg'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=baixos;el.style.display=baixos?'flex':'none';}});
+}
+function filterEst(v){renderEst(v);}
+function salvarMov(){
+  const item=document.getElementById('mvItem').value,qtd=parseInt(document.getElementById('mvQtd').value);
+  if(!item||!qtd||qtd<1){toast('Preencha item e quantidade.','err');return;}
+  const ei=estoque.find(x=>x.nome===item);
+  if(ei){
+    if(mvTipo==='entrada') ei.qtd+=qtd;
+    else{if(ei.qtd<qtd){toast('Estoque insuficiente para esta saída.','err');return;}ei.qtd-=qtd;}
+  }
+  movs.unshift({data:D0,item,tipo:mvTipo==='entrada'?'Entrada':'Saída',qtd,resp:ROLES[currentRole].label});
+  closeModal('mMov');renderEst();
+  toast((mvTipo==='entrada'?'Entrada':'Saída')+' registrada com sucesso!');
+  if(ei&&ei.qtd<ei.min) toast('⚠ '+ei.nome+' abaixo do mínimo!','warn');
+  ['mvItem','mvQtd','mvObs'].forEach(i=>document.getElementById(i).value='');
+}
+
+// Set dynamic date defaults once DOM is ready
+window.addEventListener('DOMContentLoaded',()=>{
+  const fd=document.getElementById('filterData');
+  if(fd) fd.value=D0;
+});
+</script>
+</body>
+</html>
